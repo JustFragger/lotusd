@@ -2671,6 +2671,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             }
             pindexNew = *it;
         }
+        LogPrintf("FindMostWorkChain starting with %s\n", pindexNew->GetBlockHash().GetHex());
 
         // If this block will cause a finalized block to be reorged, then we
         // mark it as invalid.
@@ -2695,8 +2696,13 @@ CBlockIndex *CChainState::FindMostWorkChain() {
         // is an optimization, as we know all blocks in it are valid already.
         CBlockIndex *pindexTest = pindexNew;
         bool hasValidAncestor = true;
+        LogPrintf("pIndexFork different? %d\n", pindexTest != pindexFork);
+        LogPrintf("MostWork is null, finding most work chain!\n");
+
         while (hasValidAncestor && pindexTest && pindexTest != pindexFork) {
             assert(pindexTest->HaveTxsDownloaded() || pindexTest->nHeight == 0);
+
+            LogPrintf("FindMostWorkChain %s\n", pindexTest->GetBlockHash().GetHex());
 
             // If this is a parked chain, but it has enough PoW, clear the park
             // state.
@@ -2752,6 +2758,7 @@ CBlockIndex *CChainState::FindMostWorkChain() {
             bool fInvalidChain = pindexTest->nStatus.isInvalid();
             bool fMissingData = !pindexTest->nStatus.hasData();
             if (!(fInvalidChain || fParkedChain || fMissingData)) {
+                LogPrintf("fInvalidChain %d fParkedChain %d fMissingData %d\n", fInvalidChain , fParkedChain , fMissingData);
                 // The current block is acceptable, move to the parent, up to
                 // the fork point.
                 pindexTest = pindexTest->pprev;
@@ -3001,7 +3008,7 @@ bool CChainState::ActivateBestChain(const Config &config,
     // us in the middle of ProcessNewBlock - do not assume pblock is set
     // sanely for performance or correctness!
     AssertLockNotHeld(cs_main);
-
+    LogPrintf("ActivateBestChain!\n");
     const CChainParams &params = config.GetChainParams();
 
     // ABC maintains a fair degree of expensive-to-calculate internal state
@@ -3039,12 +3046,14 @@ bool CChainState::ActivateBestChain(const Config &config,
                 ConnectTrace connectTrace;
 
                 if (pindexMostWork == nullptr) {
+                    LogPrintf("MostWork is null, finding most work chain!\n");
                     pindexMostWork = FindMostWorkChain();
                 }
 
                 // Whether we have anything to do at all.
                 if (pindexMostWork == nullptr ||
                     pindexMostWork == m_chain.Tip()) {
+                    LogPrintf("MostWork is tip or null (%d). Breaking!\n", pindexMostWork == nullptr);
                     break;
                 }
 

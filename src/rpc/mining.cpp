@@ -175,6 +175,11 @@ static UniValue generateBlocks(const Config &config,
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd && !ShutdownRequested()) {
+        {
+            LOCK(cs_main);
+            LogPrintf("Heights: Loop height: %d, Chain Height %d\n", nHeight, ::ChainActive().Height());
+            // assert(nHeight == ::ChainActive().Height());
+        }
         std::unique_ptr<CBlockTemplate> pblocktemplate(
             BlockAssembler(config, mempool).CreateNewBlock(coinbase_script));
 
