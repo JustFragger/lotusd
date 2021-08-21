@@ -66,3 +66,28 @@ bool CheckProofOfWork(const BlockHash &hash, uint32_t nBits,
 
     return true;
 }
+
+bool IsEpochBlockHash(const BlockHash &hash, const uint32_t nBits) {
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+    bnTarget /= EPOCH_NUM_BLOCKS;
+
+    // Check if proof of work is sufficient to be an epoch hash
+    return UintToArith256(hash) <= bnTarget;
+}
+
+uint256 GetNextEpochBlockHash(const CBlockHeader *block,
+                              const CBlockIndex *pindexPrev,
+                              const Consensus::Params &params) {
+    const bool isNewEpoch =
+        IsExodusEnabled(params, pindexPrev)
+            ? IsEpochBlockHash(block->hashPrevBlock, block->nBits)
+            : block->nHeight % EPOCH_NUM_BLOCKS == 0;
+    if (isNewEpoch) {
+        return block->hashPrevBlock;
+    }
+    return pindexPrev->hashEpochBlock;
+}

@@ -410,7 +410,7 @@ void SetupServerArgs(NodeContext &node) {
         "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",
         "-uiplatform",
         // TODO remove after the November 2020 upgrade
-        "-axionactivationtime"};
+        "-axionactivationtime", "-exodusactivationtime"};
 
     // Set all of the args and their help
     // When adding new options to the categories, please keep and ensure

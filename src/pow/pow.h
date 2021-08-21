@@ -12,6 +12,7 @@ struct BlockHash;
 class CBlockHeader;
 class CBlockIndex;
 class CChainParams;
+class uint256;
 
 namespace Consensus {
 struct Params;
@@ -27,5 +28,22 @@ uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
  */
 bool CheckProofOfWork(const BlockHash &hash, uint32_t nBits,
                       const Consensus::Params &params);
+
+/**
+ * Check if proof of work is sufficient to be an epoch block.
+ * A block is considered an epoch block if the hash is EPOCH_NUM_BLOCKS times
+ * below the target of the *next* block.
+ */
+bool IsEpochBlockHash(const BlockHash &hash, const uint32_t nBits);
+
+/**
+ * Return the epoch block hash for the next block.
+ * Before the December 21st 2021 hardfork, epochs roll over every
+ * EPOCH_NUM_BLOCKS blocks, after, they roll over if the previous block hash is
+ * EPOCH_NUM_BLOCKS times below the target of the next block.
+ */
+uint256 GetNextEpochBlockHash(const CBlockHeader *block,
+                              const CBlockIndex *pindexPrev,
+                              const Consensus::Params &params);
 
 #endif // BITCOIN_POW_POW_H
